@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raspberry Pi Camera Stream</title>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; }
+        img { width: 80%; max-width: 640px; border: 2px solid black; }
+        button { padding: 10px 20px; font-size: 16px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Live Camera Stream</h1>
+    <img src="{{ url_for('video_feed') }}" alt="Video Feed">
+    
+    <h2>Adjust Camera Settings</h2>
+    <button onclick="updateSetting('lenspos', 0.05)">Increase Lens Position</button>
+    <button onclick="updateSetting('lenspos', -0.05)">Decrease Lens Position</button>
+    <!--<br>
+    <button onclick="updateSetting('contrast', 0.1)">Increase Contrast</button>
+    <button onclick="updateSetting('contrast', -0.1)">Decrease Contrast</button>-->
+
+    <script>
+        function updateSetting(setting, value) {
+            fetch('/update_settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ [setting]: value })
+            })
+            .then(response => response.json())
+            .then(data => console.log("Updated:", data))
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</body>
+</html>

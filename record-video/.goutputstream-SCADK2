@@ -1,0 +1,13 @@
+var_resolution = (1280, 720) # camera resolution
+var_framerate = 5 # framerate
+var_vflip = False # vertical flip
+var_length = 10 # recording length in seconds
+var_pir = False # Use PIR to trigger camera
+var_pir_gpio = 17 # GPIO pin for PIR
+var_out_folder = '/home/pi/Data/' # output folder
+var_record_external = True
+var_external_paths = ('/mnt/Feeder01/Data/','/mnt/Feeder02/Data') # list of external paths. 
+# Make sure this is never the root of the external driver, but a folder on the drive, e.g. NOT /mnt/Feeder01 but /mnt/Feeder01/Data
+var_usb_device = '/dev/video1' # location of USB camera. To list run `v4l2-ctl --list-devices`
+
+
