@@ -137,6 +137,7 @@ def record(args,counter):
 def main():
 	# argument parser
 	parser = argparse.ArgumentParser()
+	parser.add_argument("-o", "--out", help="Output directory, e.g. '/home/pi/Data/")
 	parser.add_argument("-c", "--camera", default = '0', help="Camera ID")
 	parser.add_argument("-W", "--width", type = int, default = 2304, help="Camera resolution width")
 	parser.add_argument("-H", "--height", type = int, default = 1296, help="Camera resolution height")
@@ -148,9 +149,8 @@ def main():
 	parser.add_argument("-fmt", "--format", default = 'XBGR8888', help="Image format. Use 'XBGR8888' for colour and 'YUV420 for greyscale")
 	parser.add_argument("-L", "--length", type = int, default = 10, help="Length in seconds")
 	parser.add_argument("-pir", "--pirgpio", default = None, help="GPIO pin for PIR, e.g. 17")
-	parser.add_argument("-o", "--out", help="Output directory, e.g. '/home/pi/Data/")
 	parser.add_argument("-f", "--lenspos", default = None,
-		help="Lens position value for focusable lens (e.g. v3). Value range: 0.0 to 10.0. Leave it -1 for non-adjustable cameras.")
+		help="Lens position value for focusable lens (e.g. v3). Value range: 0.0 to 10.0. Leave it None for non-adjustable cameras.")
 	parser.add_argument("-p", "--preview", action = "store_true", help="Enable camera preview")
 	parser.add_argument("-rep", "--repeat", default = 1, help="Repeated recordings")
 	parser.add_argument("-hb", "--heartbeat", default = '/tmp/heartbeat', help="Heartbeat file to update")
@@ -158,7 +158,7 @@ def main():
 	parser.add_argument("-rec", "--recipient", default = None, help="Path to age recipient txt file for encryption")
 	parser.add_argument("-u", "--usb", default = '/dev/video0', help="Path to USB camera, to list devices: v4l2-ctl --list-device")
 	parser.add_argument("-fexn", "--framen", type = int, default = None, help="Export nth frame from video")
-	parser.add_argument("-fexo", "--frameout", default = None, help="Output director for frames")
+	parser.add_argument("-fexo", "--frameout", default = None, help="Output directory for frames")
 	# TODO
     #var_vflip = False # vertical flip
 	#var_hflip = False # horizontal flip
