@@ -53,25 +53,28 @@ def record(args,counter):
 		print('Starting to record '+tmp_path)
 		t0 = time.time() # time of recording start
 		th = t0
-		while time.time() - t0 < args.length:
-			t1 = time.time() # time of frame start
-			rgb_frame = picam2.capture_array()
-			rgb_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGBA2BGR)
-			out.write(rgb_frame)
-			#print(time.time() - t1)
-			while time.time() - t1 < 1/args.framerate:
-				time.sleep(0.01)
+		try:
+			while time.time() - t0 < args.length:
+				t1 = time.time() # time of frame start
+				rgb_frame = picam2.capture_array()
+				rgb_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGBA2BGR)
+				out.write(rgb_frame)
 				#print(time.time() - t1)
-			#print('new frame')
-			if time.time() - th > args.beat:
-				os.system(f'echo "$(date \'+%Y-%m-%d %H:%M:%S\')" > "{args.heartbeat}"')
-				th = time.time()
-				print('Heartbeat updated')
+				while time.time() - t1 < 1/args.framerate:
+					time.sleep(0.01)
+					#print(time.time() - t1)
+				#print('new frame')
+				if time.time() - th > args.beat:
+					os.system(f'echo "$(date \'+%Y-%m-%d %H:%M:%S\')" > "{args.heartbeat}"')
+					th = time.time()
+					print('Heartbeat updated')
+		finally:
+			# release video
+			out.release()
 		print('Finished recording '+tmp_path)
 		# stop preview
 		if args.preview:
 			picam2.stop_preview()
-	# TODO
 	else: # USB camera
 		# Set up output path
 		# get hostname
