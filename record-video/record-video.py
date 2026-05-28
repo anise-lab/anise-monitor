@@ -59,7 +59,7 @@ def record(args,counter):
 			out = cv2.VideoWriter(tmp_path, fourcc, args.framerate, (args.width, args.height))
 		else:
 			fourcc = cv2.VideoWriter_fourcc(*"MJPG")
-			out = cv2.VideoWriter(tmp_path, fourcc, args.framerate, (args.width, args.height), icColor = is_colour)
+			out = cv2.VideoWriter(tmp_path, fourcc, args.framerate, (args.width, args.height), isColor = is_colour)
 		# preview
 		if args.preview:
 			picam2.start_preview(Preview.QTGL)
