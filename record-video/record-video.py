@@ -15,8 +15,12 @@ def record(args,counter):
 			# Initialise camera
 			print('Configuring camera...')
 			picam2 = Picamera2(int(args.camera))
+			if args.greyscale:
+				camera_format = "YUV420"
+			else:
+				camera_format = "XBGR8888"
 			video_config = picam2.create_video_configuration(main={"size": (args.width, args.height),
-																	"format": args.format})
+																	"format": camera_format})
 			picam2.configure(video_config)
 			# Start camera
 			picam2.start()
@@ -39,13 +43,23 @@ def record(args,counter):
 		str_dt = dt.strftime("%Y_%m_%d-%H_%M_%S") # convert timestamp to string in yyyy-mm-dd_HH-MM-SS
 		# construct filename
 		filename = device_id+'_cam'+str(args.camera)+'_'+str_dt
+		# set up extension
+		if args.greyscale:
+			extension = '.avi'
+		else:
+			extension = '.mp4'
 		# final output path
-		out_path = os.path.join(output_path,filename+'.mp4')
+		out_path = os.path.join(output_path,filename+extension)
 		# temporary path
-		tmp_path = os.path.join('/tmp',filename+'.mp4')
+		tmp_path = os.path.join('/tmp',filename+extension)
 		# set up cv2
-		fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Use "avc1" or "H264" if supported
-		out = cv2.VideoWriter(tmp_path, fourcc, args.framerate, (args.width, args.height))
+		is_colour = not args.greyscale
+		if is_colour:
+			fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Use "avc1" or "H264" if supported
+			out = cv2.VideoWriter(tmp_path, fourcc, args.framerate, (args.width, args.height))
+		else:
+			fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+			out = cv2.VideoWriter(tmp_path, fourcc, args.framerate, (args.width, args.height), icColor = is_colour)
 		# preview
 		if args.preview:
 			picam2.start_preview(Preview.QTGL)
@@ -56,9 +70,13 @@ def record(args,counter):
 		try:
 			while time.time() - t0 < args.length:
 				t1 = time.time() # time of frame start
-				rgb_frame = picam2.capture_array()
-				rgb_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGBA2BGR)
-				out.write(rgb_frame)
+				frame = picam2.capture_array()
+				if args.greyscale:
+					grey = frame[:args.height, :args.width]
+					out.write(grey)
+				else:
+					rgb_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGBA2BGR)
+					out.write(frame)
 				#print(time.time() - t1)
 				while time.time() - t1 < 1/args.framerate:
 					time.sleep(0.01)
@@ -147,6 +165,7 @@ def main():
 	# Camera V3: 4608 × 2592 - 2304 x 1296 - 1152 x 648
 	parser.add_argument("-fps", "--framerate", type = int, default = 30, help="Frame per second")
 	parser.add_argument("-fmt", "--format", default = 'XBGR8888', help="Image format. Use 'XBGR8888' for colour and 'YUV420 for greyscale")
+	parser.add_argument("-grey", "--greyscale", action = "store_true", help = "Record in greyscale")
 	parser.add_argument("-L", "--length", type = int, default = 10, help="Length in seconds")
 	parser.add_argument("-pir", "--pirgpio", default = None, help="GPIO pin for PIR, e.g. 17")
 	parser.add_argument("-f", "--lenspos", default = None,
