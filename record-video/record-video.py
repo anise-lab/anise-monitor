@@ -109,7 +109,7 @@ def record(args,counter):
 	if args.framen is not None:
 		if not os.path.exists(args.frameout):
 			os.makedirs(args.frameout)
-		cmd_frame = 'ffmpeg -i '+tmp_path+' -vf "select=eq(n\,'+str(args.framen)+')" -vsync vfr -frames:v 1 '+args.frameout+'/'+filename+'_f'+str(args.framen)+'.jpg'
+		cmd_frame = 'ffmpeg -i '+tmp_path+' -vf "select=eq(n\\,'+str(args.framen)+')" -fps_mode vfr -frames:v 1 '+args.frameout+'/'+filename+'_f'+str(args.framen)+'.jpg'
 		print(cmd_frame)
 		os.system(cmd_frame)
     # move to final output path
