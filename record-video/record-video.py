@@ -75,7 +75,7 @@ def record(args,counter):
 					grey = frame[:args.height, :args.width]
 					out.write(grey)
 				else:
-					rgb_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_RGBA2BGR)
+					frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
 					out.write(frame)
 				#print(time.time() - t1)
 				while time.time() - t1 < 1/args.framerate:
