@@ -19,7 +19,7 @@ python3 record-video.py -o out [options]
     -W width            Camera resolution width (default: 2304)
     -H height           Camera resolution height (default: 1296)
     -fps framerate      Framerate for output video (default: 30)
-    -fmt format         Image format. Use 'XBGR8888' for colour and 'YUV420 for greyscale (default: XBGR8888)
+    -fmt format         Image format. Use 'XBGR8888' for colour and 'YUV420' for greyscale (default: XBGR8888)
     -L length           Length in seconds (default: 30)
     -pir pirgpio        GPIO pin for PIR, e.g. 17 (default: None)
     -f lenspos          Lens position value for focusable lens (e.g. v3). Value range: 0.0 to 10.0. (default: None)
