@@ -7,7 +7,62 @@ import gc
 import shutil
 
 def record(args,counter):
-	if not args.camera == 'usb':
+	if args.camera == 'usb': # USB camera
+		# Set up output path
+		# get hostname
+		device_id = os.uname()[1]
+		# Create output folder if it does not exist
+		# get time
+		dt = datetime.now() # get current time
+		datetag = dt.strftime("%Y_%m_%d")
+		# Check if writing directly to external drive is enabled
+		output_path = os.path.join(args.out,device_id+'_'+datetag) # default path
+		if not os.path.exists(output_path):
+			os.makedirs(output_path)
+		str_dt = dt.strftime("%Y_%m_%d-%H_%M_%S") # convert timestamp to string in yyyy-mm-dd_HH-MM-SS
+		# construct filename
+		filename = device_id+'_cam'+str(args.camera)+'_'+str_dt
+		# final output path
+		out_path = os.path.join(output_path,filename+'.mp4')
+		# temporary path
+		tmp_path = os.path.join('/tmp',filename+'.mp4')
+		# construct command for v4l2 settings
+		command_v4l2 = 'v4l2-ctl -d /dev/video0 --set-fmt-video=width='+str(args.width)+',height='+str(args.height)+',pixelformat=MJPG --set-parm='+str(args.framerate)
+		print(command_v4l2)
+		os.system(command_v4l2)
+		# construct command to record via ffmpeg
+		command_record = 'ffmpeg -t '+str(args.length)+' -f v4l2 -input_format mjpeg -i '+args.usb+' '+tmp_path
+		print(command_record)
+		# record
+		print('Starting to record '+tmp_path)
+		os.system(command_record)
+		print('Finished recording '+tmp_path)
+	elif args.camera == 'zero': # Zero with hardware encoding
+		# Set up output path
+		# get hostname
+		device_id = os.uname()[1]
+		# Create output folder if it does not exist
+		# get time
+		dt = datetime.now() # get current time
+		datetag = dt.strftime("%Y_%m_%d")
+		# Check if writing directly to external drive is enabled
+		output_path = os.path.join(args.out,device_id+'_'+datetag) # default path
+		if not os.path.exists(output_path):
+			os.makedirs(output_path)
+		str_dt = dt.strftime("%Y_%m_%d-%H_%M_%S") # convert timestamp to string in yyyy-mm-dd_HH-MM-SS
+		# construct filename
+		filename = device_id+'_cam'+str(args.camera)+'_'+str_dt
+		# final output path
+		out_path = os.path.join(output_path,filename+'.h264')
+		# temporary path
+		tmp_path = os.path.join('/tmp',filename+'.h264')
+		command_rpicam = 'rpicam-vid -t '+ args.length * 1000 +' --width '+ args.width + ' --height '+ args.height +' --framerate '+args.framerate+' -o '+tmp_path
+		print(command_rpicam)
+		# record
+		print('Starting to record '+tmp_path)
+		os.system(command_rpicam)
+		print('Finished recording '+tmp_path)
+	else:
 		import cv2
 		from picamera2 import Picamera2
 		# for now this will only record from camera port 0 or 1 (Rpi 5)
@@ -93,36 +148,6 @@ def record(args,counter):
 		# stop preview
 		if args.preview:
 			picam2.stop_preview()
-	else: # USB camera
-		# Set up output path
-		# get hostname
-		device_id = os.uname()[1]
-		# Create output folder if it does not exist
-		# get time
-		dt = datetime.now() # get current time
-		datetag = dt.strftime("%Y_%m_%d")
-		# Check if writing directly to external drive is enabled
-		output_path = os.path.join(args.out,device_id+'_'+datetag) # default path
-		if not os.path.exists(output_path):
-			os.makedirs(output_path)
-		str_dt = dt.strftime("%Y_%m_%d-%H_%M_%S") # convert timestamp to string in yyyy-mm-dd_HH-MM-SS
-		# construct filename
-		filename = device_id+'_cam'+str(args.camera)+'_'+str_dt
-		# final output path
-		out_path = os.path.join(output_path,filename+'.mp4')
-		# temporary path
-		tmp_path = os.path.join('/tmp',filename+'.mp4')
-		# construct command for v4l2 settings
-		command_v4l2 = 'v4l2-ctl -d /dev/video0 --set-fmt-video=width='+str(args.width)+',height='+str(args.height)+',pixelformat=MJPG --set-parm='+str(args.framerate)
-		print(command_v4l2)
-		os.system(command_v4l2)
-		# construct command to record via ffmpeg
-		command_record = 'ffmpeg -t '+str(args.length)+' -f v4l2 -input_format mjpeg -i '+args.usb+' '+tmp_path
-		print(command_record)
-		# record
-		print('Starting to record '+tmp_path)
-		os.system(command_record)
-		print('Finished recording '+tmp_path)
 	# export frame
 	if args.framen is not None:
 		if not os.path.exists(args.frameout):
