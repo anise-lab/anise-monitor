@@ -56,7 +56,7 @@ def record(args,counter):
 		out_path = os.path.join(output_path,filename+'.h264')
 		# temporary path
 		tmp_path = os.path.join('/tmp',filename+'.h264')
-		command_rpicam = 'rpicam-vid -t '+ str(args.length * 1000) +' --width '+ str(args.width) + ' --height '+ str(args.height) +' --framerate '+str(args.framerate)+' -o '+tmp_path
+		command_rpicam = 'rpicam-vid --progress 0 -t '+ str(args.length * 1000) +' --width '+ str(args.width) + ' --height '+ str(args.height) +' --framerate '+str(args.framerate)+' -o '+tmp_path
 		print(command_rpicam)
 		# record
 		print('Starting to record '+tmp_path)
@@ -171,7 +171,7 @@ def record(args,counter):
     #    os.system("touch "+os.path.join(output_path,'hack.lock'))
     #    os.system("rm "+os.path.join(output_path,'hack.lock'))
     # close camera
-	if not args.camera == 'usb':
+	if args.camera not in ['usb', 'zero']:
 		if counter == (args.repeat - 1):
 			picam2.stop()
 			picam2.close()
