@@ -56,7 +56,7 @@ def record(args,counter):
 		out_path = os.path.join(output_path,filename+'.h264')
 		# temporary path
 		tmp_path = os.path.join('/tmp',filename+'.h264')
-		command_rpicam = 'rpicam-vid -t '+ args.length * 1000 +' --width '+ args.width + ' --height '+ args.height +' --framerate '+args.framerate+' -o '+tmp_path
+		command_rpicam = 'rpicam-vid -t '+ str(args.length * 1000) +' --width '+ str(args.width) + ' --height '+ str(args.height) +' --framerate '+str(args.framerate)+' -o '+tmp_path
 		print(command_rpicam)
 		# record
 		print('Starting to record '+tmp_path)
