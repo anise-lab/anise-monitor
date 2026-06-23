@@ -1,18 +1,28 @@
 
 #!/bin/bash
 
-# Configuration
-SCRIPT_PATH="/home/pi/anise-monitor/record-video/record-video.py"
-DATA_PATH="/home/pi/Data/"
-SCRIPT_LENGTH=300 # length in seconds
+## Configuration
+ACTIVITY_NAME="template"
+# Paths
+PYTHON="/usr/bin/python3"
+HOME_PATH="/home/pi/"
+SCRIPT_PATH="${HOME_PATH}/anise-monitor/record-video/record-video.py"
+DATA_PATH="${HOME_PATH}/Data/"
+LOG_PATH="${HOME_PATH}/Logs/"
+HEARTBEAT="/tmp/heartbeat"
+RESTARTFILE="/tmp/restartme"
+
+# Script variables 
+SCRIPT_LENGTH=10 # length in seconds
 THRESHOLD=$(echo "$SCRIPT_LENGTH * 0.8" | bc) # threshold for length
-RESTARTFILE="/tmp/restartme" # to create RESTARTFILE, add "0 2 * * * touch /tmp/restartme"
 SCRIPT_VARIABLES_ACTIVE=(-o "$DATA_PATH" -c 0 -W 2304 -H 1296 -fps 9)
 SCRIPT_VARIABLES_PASSIVE=()
-PYTHON="/usr/bin/python3"
-LOGFILE="/var/log/rgb_capture.log"
-LOCKFILE="/tmp/rgb.lock"
-HEARTBEAT="/tmp/heartbeat"
+
+# Set up log and locks
+mkdir -p "$LOG_PATH"
+LOGFILE="${LOG_PATH}/${ACTIVITY_NAME}_$(date +%Y_%m_%d).log"
+LOCKFILE="/tmp/${ACTIVITY_NAME}.lock"
+
 # Active recording hours (24-hour format)
 ACTIVE_TIME_RANGES=("0:25") # different than cronjob times!
 
@@ -63,13 +73,19 @@ if $run_active; then
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Finished active" >> "$LOGFILE"
     end_time=$(date +%s)
     elapsed=$((end_time - start_time))
+    
+    # Restart the Pi if elapsed time is less than threshold
     if (( $(echo "$elapsed < $THRESHOLD" | bc -l) )); then
         echo "Script exited early, creating restart flag" >> "$LOGFILE"
-        touch"$RESTARTFILE"
+        touch "$RESTARTFILE"
     fi
+    
+    # Restart Pi after every run
+    # touch "$RESTARTFILE"
+    
     # Update heartbeat (used by watchdog)
     echo "$(date '+%Y-%m-%d %H:%M:%S')" > "$HEARTBEAT"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Heartbeat updated" >> "$LOGFILE"s
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Heartbeat updated" >> "$LOGFILE"
 else
     # Run the passive script
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting passive" >> "$LOGFILE"
@@ -84,7 +100,6 @@ fi
 if [ -f "$RESTARTFILE" ]; then
     rm -f "$RESTARTFILE"
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Restart triggered by restartme flag" >> "$LOGFILE"
-    /sbin/shutdown -r now
-    #echo "$(date '+%Y-%m-%d %H:%M:%S') - Restart triggered by restartme flag" 
+    /sbin/shutdown -r +1 # reboot in 1 minute
 fi
 
