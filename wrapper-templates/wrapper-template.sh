@@ -100,7 +100,7 @@ fi
 if [ "$EUID" -eq 0 ]; then
     # Make sure outputs are 777
     chmod -R 777 "$DATA_PATH"
-    chmod -R 777 "$LOG_FILE"
+    chmod -R 777 "$LOGFILE"
     chmod -R 777 "$HEARTBEAT"
     
     # Check if restartme exists, if yes, restart the Pi
