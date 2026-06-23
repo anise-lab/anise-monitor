@@ -70,10 +70,7 @@ def record(args,counter):
 			# Initialise camera
 			print('Configuring camera...')
 			picam2 = Picamera2(int(args.camera))
-			if args.greyscale:
-				camera_format = "YUV420"
-			else:
-				camera_format = "XBGR8888"
+			camera_format = "BGR888"
 			video_config = picam2.create_video_configuration(main={"size": (args.width, args.height),
 																	"format": camera_format})
 			picam2.configure(video_config)
@@ -123,15 +120,23 @@ def record(args,counter):
 		t0 = time.time() # time of recording start
 		th = t0
 		try:
+			frame_number = 0
 			while time.time() - t0 < args.length:
 				t1 = time.time() # time of frame start
 				frame = picam2.capture_array()
 				if args.greyscale:
-					grey = frame[:args.height, :args.width]
+					grey = frame[..., 1]
 					out.write(grey)
 				else:
-					frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+					#frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
 					out.write(frame)
+				# increase frame number
+				frame_number = frame_number + 1
+				# if this is requested frame as output, write it out as jpg
+				if frame_number == args.framen and args.frameout != None:
+					if not os.path.exists(args.frameout):
+						os.makedirs(args.frameout)
+					cv2.imwrite(args.frameout+'/'+filename+'_f'+str(frame_number)+'.jpg', frame)
 				#print(time.time() - t1)
 				while time.time() - t1 < 1/args.framerate:
 					time.sleep(0.01)
@@ -149,12 +154,12 @@ def record(args,counter):
 		if args.preview:
 			picam2.stop_preview()
 	# export frame
-	if args.framen is not None:
-		if not os.path.exists(args.frameout):
-			os.makedirs(args.frameout)
-		cmd_frame = 'ffmpeg -i '+tmp_path+' -vf "select=eq(n\\,'+str(args.framen)+')" -fps_mode vfr -frames:v 1 '+args.frameout+'/'+filename+'_f'+str(args.framen)+'.jpg'
-		print(cmd_frame)
-		os.system(cmd_frame)
+	#if args.framen is not None:
+	#	if not os.path.exists(args.frameout):
+	#		os.makedirs(args.frameout)
+	#	cmd_frame = 'ffmpeg -i '+tmp_path+' -vf "select=eq(n\\,'+str(args.framen)+')" -fps_mode vfr -frames:v 1 '+args.frameout+'/'+filename+'_f'+str(args.framen)+'.jpg'
+	#	print(cmd_frame)
+	#	os.system(cmd_frame)
     # move to final output path
 	if args.recipient:
 		os.system("age --recipients-file "+args.recipient+" -o "+out_path+".age "+tmp_path)
