@@ -70,8 +70,7 @@ def record(args,counter):
 			print('Configuring camera...')
 			picam2 = Picamera2(int(args.camera))
 			camera_format = "BGR888"
-			video_config = picam2.create_video_configuration(main={"size": (args.width, args.height),
-																	"format": camera_format})
+			video_config = picam2.create_video_configuration(main={"size": (args.width, args.height),"format": camera_format},controls={"FrameRate": args.framerate})
 			picam2.configure(video_config)
 			# Start camera
 			picam2.start()
