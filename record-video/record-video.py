@@ -63,7 +63,6 @@ def record(args,counter):
 		os.system(command_rpicam)
 		print('Finished recording '+tmp_path)
 	else:
-		import cv2
 		from picamera2 import Picamera2
 		# for now this will only record from camera port 0 or 1 (Rpi 5)
 		if not counter:
@@ -95,60 +94,71 @@ def record(args,counter):
 		str_dt = dt.strftime("%Y_%m_%d-%H_%M_%S") # convert timestamp to string in yyyy-mm-dd_HH-MM-SS
 		# construct filename
 		filename = device_id+'_cam'+str(args.camera)+'_'+str_dt
-		# set up extension
-		if args.greyscale:
-			extension = '.avi'
-		else:
-			extension = '.mp4'
 		# final output path
-		out_path = os.path.join(output_path,filename+extension)
+		out_path = os.path.join(output_path,filename+'.mp4')
 		# temporary path
-		tmp_path = os.path.join('/tmp',filename+extension)
-		# set up cv2
-		is_colour = not args.greyscale
-		if is_colour:
-			fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Use "avc1" or "H264" if supported
-			out = cv2.VideoWriter(tmp_path, fourcc, args.framerate, (args.width, args.height))
-		else:
-			fourcc = cv2.VideoWriter_fourcc(*"MJPG")
-			out = cv2.VideoWriter(tmp_path, fourcc, args.framerate, (args.width, args.height), isColor = is_colour)
+		tmp_path = os.path.join('/tmp',filename+'.mp4')
 		# preview
 		if args.preview:
 			picam2.start_preview(Preview.QTGL)
-		# record
-		print('Starting to record '+tmp_path)
-		t0 = time.time() # time of recording start
-		th = t0
-		try:
-			frame_number = 0
-			while time.time() - t0 < args.length:
-				t1 = time.time() # time of frame start
-				frame = picam2.capture_array()
-				if args.greyscale:
-					grey = frame[..., 1]
-					out.write(grey)
-				else:
-					#frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
+		if args.hardware_encoder == False:
+			# set up cv2
+			import cv2
+			fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Use "avc1" or "H264" if supported
+			out = cv2.VideoWriter(tmp_path, fourcc, args.framerate, (args.width, args.height))
+			# record
+			print('Starting to record '+tmp_path)
+			t0 = time.time() # time of recording start
+			th = t0
+			try:
+				frame_number = 0
+				while time.time() - t0 < args.length:
+					t1 = time.time() # time of frame start
+					frame = picam2.capture_array()
+					if args.greyscale:
+						frame = cv2.cvtColor(frame[...,1], cv2.COLOR_GRAY2BGR)
+					#else:
+						#frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
 					out.write(frame)
-				# increase frame number
-				frame_number = frame_number + 1
-				# if this is requested frame as output, write it out as jpg
-				if frame_number == args.framen and args.frameout != None:
-					if not os.path.exists(args.frameout):
-						os.makedirs(args.frameout)
-					cv2.imwrite(args.frameout+'/'+filename+'_f'+str(frame_number)+'.jpg', frame)
-				#print(time.time() - t1)
-				while time.time() - t1 < 1/args.framerate:
-					time.sleep(0.01)
-					#print(time.time() - t1)
-				#print('new frame')
+					# increase frame number
+					frame_number = frame_number + 1
+					# if this is requested frame as output, write it out as jpg
+					if frame_number == args.framen and args.frameout != None:
+						if not os.path.exists(args.frameout):
+							os.makedirs(args.frameout)
+						cv2.imwrite(args.frameout+'/'+filename+'_f'+str(frame_number)+'.jpg', frame)
+					if args.verbose:
+						print(time.time() - t1)
+					while time.time() - t1 < 1/args.framerate:
+						time.sleep(0.01)
+						#print(time.time() - t1)
+					#print('new frame')
+					# update heartbeat
+					if time.time() - th > args.beat:
+						os.system(f'echo "$(date \'+%Y-%m-%d %H:%M:%S\')" > "{args.heartbeat}"')
+						th = time.time()
+						print('Heartbeat updated')
+			finally:
+				# release video
+				out.release()
+		else:
+			from picamera2.encoders import H264Encoder
+			from picamera2.outputs import FfmpegOutput
+			encoder = H264Encoder()
+			output = FfmpegOutput(tmp_path)
+			# record
+			print('Starting to record '+tmp_path)
+			t0 = time.time() # time of recording start
+			th = t0
+			picam2.start_recording(encoder, output)
+			while time.time() - t0 < args.length:
+				# update heartbeat
 				if time.time() - th > args.beat:
 					os.system(f'echo "$(date \'+%Y-%m-%d %H:%M:%S\')" > "{args.heartbeat}"')
 					th = time.time()
 					print('Heartbeat updated')
-		finally:
-			# release video
-			out.release()
+				time.sleep(0.1)
+			picam2.stop_recording()
 		print('Finished recording '+tmp_path)
 		# stop preview
 		if args.preview:
@@ -166,9 +176,6 @@ def record(args,counter):
 	else:
 		shutil.move(tmp_path, out_path)
 	print('Moved '+tmp_path+' to '+out_path)
-	# garbage collection
-	del tmp_path
-	gc.collect()
     ## hack for not losing last file if usb drive not ejected safely
     #if var_record_external and len(var_external_paths):
     #    if os.path.exists(os.path.join(output_path,'hack.lock')):
@@ -181,6 +188,9 @@ def record(args,counter):
 			picam2.stop()
 			picam2.close()
 			print('Camera closed')
+	# garbage collection
+	del tmp_path
+	gc.collect()
 
 def main():
 	# argument parser
@@ -208,6 +218,8 @@ def main():
 	parser.add_argument("-u", "--usb", default = '/dev/video0', help="Path to USB camera, to list devices: v4l2-ctl --list-device")
 	parser.add_argument("-fexn", "--framen", type = int, default = None, help="Export nth frame from video")
 	parser.add_argument("-fexo", "--frameout", default = None, help="Output directory for frames")
+	parser.add_argument("-he", "--hardware_encoder", action = "store_true", help="Use H264 hardware encoder")
+	parser.add_argument("-v", "--verbose", action = "store_true", help = "Verbose mode")
 	# TODO
     #var_vflip = False # vertical flip
 	#var_hflip = False # horizontal flip
