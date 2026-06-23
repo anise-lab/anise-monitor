@@ -69,7 +69,10 @@ def record(args,counter):
 			# Initialise camera
 			print('Configuring camera...')
 			picam2 = Picamera2(int(args.camera))
-			camera_format = "BGR888"
+			if args.hardware_encoder:
+				camera_format = "YUV420"
+			else:
+				camera_format = "BGR888"
 			video_config = picam2.create_video_configuration(main={"size": (args.width, args.height),"format": camera_format},controls={"FrameRate": args.framerate})
 			picam2.configure(video_config)
 			# Start camera
@@ -109,6 +112,7 @@ def record(args,counter):
 			print('Starting to record '+tmp_path)
 			t0 = time.time() # time of recording start
 			th = t0
+			target_interval = 1/args.framerate
 			try:
 				frame_number = 0
 				while time.time() - t0 < args.length:
@@ -126,30 +130,32 @@ def record(args,counter):
 						if not os.path.exists(args.frameout):
 							os.makedirs(args.frameout)
 						cv2.imwrite(args.frameout+'/'+filename+'_f'+str(frame_number)+'.jpg', frame)
-					if args.verbose:
-						print(time.time() - t1)
-					while time.time() - t1 < 1/args.framerate:
-						time.sleep(0.01)
-						#print(time.time() - t1)
 					#print('new frame')
 					# update heartbeat
 					if time.time() - th > args.beat:
 						os.system(f'echo "$(date \'+%Y-%m-%d %H:%M:%S\')" > "{args.heartbeat}"')
 						th = time.time()
 						print('Heartbeat updated')
+					while time.time() - t1 < target_interval:
+						if args.verbose:
+							print(time.time() - t1)
+						remaining_time = target_interval - (time.time() - t1)
+						time.sleep(max(0.001, remaining_time)
+				if args.verbose:
+					print("Total number of frames: "+str(frame_number)+" against expected "+str(args.length * args.framerate))
 			finally:
 				# release video
 				out.release()
 		else:
 			from picamera2.encoders import H264Encoder
-			from picamera2.outputs import FfmpegOutput
-			encoder = H264Encoder()
-			output = FfmpegOutput(tmp_path)
+			from picamera2.outputs import PyavOutput
+			encoder = H264Encoder(framerate=args.framerate)
+			output = PyavOutput(tmp_path)
 			# record
 			print('Starting to record '+tmp_path)
+			picam2.start_recording(encoder, output)
 			t0 = time.time() # time of recording start
 			th = t0
-			picam2.start_recording(encoder, output)
 			while time.time() - t0 < args.length:
 				# update heartbeat
 				if time.time() - th > args.beat:
