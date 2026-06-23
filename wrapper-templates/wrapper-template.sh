@@ -96,10 +96,22 @@ else
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Heartbeat updated" >> "$LOGFILE"
 fi
 
-# Check if restartme exists, if yes, restart the Pi
-if [ -f "$RESTARTFILE" ]; then
-    rm -f "$RESTARTFILE"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') - Restart triggered by restartme flag" >> "$LOGFILE"
-    /sbin/shutdown -r +1 # reboot in 1 minute
+# if sudo, make sure outputs are 777 and optionally reboot
+if [ "$EUID" -eq 0 ]; then
+    # Make sure outputs are 777
+    chmod -R 777 "$DATA_PATH"
+    chmod -R 777 "$LOG_FILE"
+    chmod -R 777 "$HEARTBEAT"
+    
+    # Check if restartme exists, if yes, restart the Pi
+    if [ -f "$RESTARTFILE" ]; then
+        rm -f "$RESTARTFILE"
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - Restart triggered by restartme flag" >> "$LOGFILE"
+        /sbin/shutdown -r +1 # reboot in 1 minute
+    fi
 fi
+
+
+
+
 
