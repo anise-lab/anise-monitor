@@ -140,7 +140,7 @@ def record(args,counter):
 						if args.verbose:
 							print(time.time() - t1)
 						remaining_time = target_interval - (time.time() - t1)
-						time.sleep(max(0.001, remaining_time)
+						time.sleep(max(0.001, remaining_time))
 				if args.verbose:
 					print("Total number of frames: "+str(frame_number)+" against expected "+str(args.length * args.framerate))
 			finally:
