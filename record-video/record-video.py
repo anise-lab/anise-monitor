@@ -136,9 +136,9 @@ def record(args,counter):
 						os.system(f'echo "$(date \'+%Y-%m-%d %H:%M:%S\')" > "{args.heartbeat}"')
 						th = time.time()
 						print('Heartbeat updated')
+					if args.verbose:
+						print(time.time() - t1)
 					while time.time() - t1 < target_interval:
-						if args.verbose:
-							print(time.time() - t1)
 						remaining_time = target_interval - (time.time() - t1)
 						time.sleep(max(0.001, remaining_time))
 				if args.verbose:
