@@ -4,7 +4,7 @@ ANISE Monitor
 ## Setup
 After cloning, run
 ```
-sudo ./anise-monitor/setup.py
+sudo python3 ./anise-monitor/setup.py
 ```
 to install dependencies and set up things locally.
 
