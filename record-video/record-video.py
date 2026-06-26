@@ -209,7 +209,7 @@ def main():
 	# Camera V2: 3280 × 2464 - 1640 x 1232 - 820 x 616
 	# Camera V3: 4608 × 2592 - 2304 x 1296 - 1152 x 648
 	parser.add_argument("-fps", "--framerate", type = int, default = 30, help="Frame per second")
-	parser.add_argument("-fmt", "--format", default = 'XBGR8888', help="Image format. Use 'XBGR8888' for colour and 'YUV420 for greyscale")
+	parser.add_argument("-fmt", "--format", default = 'XBGR8888', help="Image format. Use 'BGR8888' (default) for colour and 'YUV420 for greyscale")
 	parser.add_argument("-grey", "--greyscale", action = "store_true", help = "Record in greyscale")
 	parser.add_argument("-L", "--length", type = int, default = 10, help="Length in seconds")
 	parser.add_argument("-pir", "--pirgpio", default = None, help="GPIO pin for PIR, e.g. 17")
