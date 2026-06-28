@@ -47,7 +47,7 @@ sudo apt install watchdog
 # create a backup of the original configuration
 sudo cp /etc/watchdog.conf /etc/watchdog.conf.bak
 # replace the configuration with one configured for the Pi
-cd ./anise-monitor/watchdog-pi.conf /etc/watchdog.conf
+sudo cp ./anise-monitor/watchdog-pi.conf /etc/watchdog.conf
 # enable and start watchdog
 sudo systemctl enable --now watchdog
 # check that it is running
