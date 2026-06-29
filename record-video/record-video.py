@@ -152,7 +152,8 @@ def record(args,counter):
 					print("Total number of frames: "+str(frame_number)+" against expected "+str(args.length * args.framerate))
 					with open(csv_path, "w", newline="") as file:
 						writer = csv.writer(file)
-						writer.writerows(fps_list)
+						writer.writerow(["fps"])
+						writer.writerows([[fps] for fps in fps_list])
 			finally:
 				# release video
 				out.release()
