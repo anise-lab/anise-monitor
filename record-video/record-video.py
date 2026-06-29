@@ -114,6 +114,11 @@ def record(args,counter):
 			th = t0
 			target_interval = 1/args.framerate
 			try:
+				if args.verbose:
+					import csv
+					# create a csv file with details about recording
+					csv_path = out_path[:-4]+'_'+str(args.width)+'_'+str(args.height)+'_'+str(args.framerate)+'_'+str(args.length)+'.csv'
+					fps_list = []
 				frame_number = 0
 				while time.time() - t0 < args.length:
 					t1 = time.time() # time of frame start
@@ -137,12 +142,17 @@ def record(args,counter):
 						th = time.time()
 						print('Heartbeat updated')
 					if args.verbose:
-						print(time.time() - t1)
+						t2 = time.time() - t1 
+						print(t2)
+						fps_list.append(t2)
 					while time.time() - t1 < target_interval:
 						remaining_time = target_interval - (time.time() - t1)
 						time.sleep(max(0.001, remaining_time))
 				if args.verbose:
 					print("Total number of frames: "+str(frame_number)+" against expected "+str(args.length * args.framerate))
+					with open(csv_path, "w", newline="") as file:
+						writer = csv.writer(file)
+						writer.writerows(fps_list)
 			finally:
 				# release video
 				out.release()
