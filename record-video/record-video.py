@@ -31,7 +31,7 @@ def record(args,counter):
 		print(command_v4l2)
 		os.system(command_v4l2)
 		# construct command to record via ffmpeg
-		command_record = 'ffmpeg -t '+str(args.length)+' -f v4l2 -input_format mjpeg -i '+args.usb+' '+tmp_path
+		command_record = 'ffmpeg -t '+str(args.length)+' -f v4l2 -input_format mjpeg -i '+args.usb+' -c:v libx264 -preset veryfast -crf 23 '+tmp_path
 		print(command_record)
 		# record
 		print('Starting to record '+tmp_path)
@@ -180,15 +180,21 @@ def record(args,counter):
 		if args.preview:
 			picam2.stop_preview()
 	# export frame
-	#if args.framen is not None:
-	#	if not os.path.exists(args.frameout):
-	#		os.makedirs(args.frameout)
-	#	cmd_frame = 'ffmpeg -i '+tmp_path+' -vf "select=eq(n\\,'+str(args.framen)+')" -fps_mode vfr -frames:v 1 '+args.frameout+'/'+filename+'_f'+str(args.framen)+'.jpg'
-	#	print(cmd_frame)
-	#	os.system(cmd_frame)
+	if args.framen is not None and args.camera == 'usb':
+		if not os.path.exists(args.frameout):
+			os.makedirs(args.frameout)
+		cmd_frame = 'ffmpeg -f v4l2 \
+			-input_format mjpeg \
+			-video_size 1920x1080 \
+			-i /dev/video0 \
+			-update 1 \
+			-frames:v 1 '+ os.path.join(args.frameout,filename +'.jpg')
+		print(cmd_frame)
+		os.system(cmd_frame)
     # move to final output path
 	if args.recipient:
 		os.system("age --recipients-file "+args.recipient+" -o "+out_path+".age "+tmp_path)
+		os.system("rm "+tmp_path)
 	else:
 		shutil.move(tmp_path, out_path)
 	print('Moved '+tmp_path+' to '+out_path)
