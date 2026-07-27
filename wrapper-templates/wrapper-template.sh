@@ -14,17 +14,18 @@ RESTARTFILE="/tmp/restartme"
 
 # Script variables 
 SCRIPT_LENGTH=10 # length in seconds
+ACTIVE_TIME_RANGES=("0:25") # Active recording hours (24-hour format), different than cronjob times!
+
+
 THRESHOLD=$(echo "$SCRIPT_LENGTH * 0.8" | bc) # threshold for length
-SCRIPT_VARIABLES_ACTIVE=(-o "$DATA_PATH" -c 0 -W 2304 -H 1296 -fps 9)
+SCRIPT_VARIABLES_ACTIVE=(-o "$DATA_PATH" -L "$SCRIPT_LENGTH" -c 0 -W 2304 -H 1296 -fps 9)
 SCRIPT_VARIABLES_PASSIVE=()
 
-# Set up log and locks
+# Set up folders, log and locks
+mkdir -p "$DATA_PATH"
 mkdir -p "$LOG_PATH"
 LOGFILE="${LOG_PATH}/${ACTIVITY_NAME}_$(date +%Y_%m_%d).log"
 LOCKFILE="/tmp/${ACTIVITY_NAME}.lock"
-
-# Active recording hours (24-hour format)
-ACTIVE_TIME_RANGES=("0:25") # different than cronjob times!
 
 # Check if lockfile exists and whether the process is still alive
 if [ -f "$LOCKFILE" ]; then

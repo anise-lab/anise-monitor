@@ -233,7 +233,7 @@ def main():
 	parser.add_argument("-f", "--lenspos", default = None,
 		help="Lens position value for focusable lens (e.g. v3). Value range: 0.0 to 10.0. Leave it None for non-adjustable cameras.")
 	parser.add_argument("-p", "--preview", action = "store_true", help="Enable camera preview")
-	parser.add_argument("-rep", "--repeat", default = 1, help="Repeated recordings")
+	parser.add_argument("-rep", "--repeat", type = int, default = 1, help="Repeated recordings")
 	parser.add_argument("-hb", "--heartbeat", default = '/tmp/heartbeat', help="Heartbeat file to update")
 	parser.add_argument("-hbb", "--beat", type = int, default = 10, help="How often update heartbeat in seconds")
 	parser.add_argument("-rec", "--recipient", default = None, help="Path to age recipient txt file for encryption")
