@@ -73,7 +73,10 @@ def record(args,counter):
 				camera_format = "YUV420"
 			else:
 				camera_format = "BGR888"
-			video_config = picam2.create_video_configuration(main={"size": (args.width, args.height),"format": camera_format},controls={"FrameRate": args.framerate})
+			video_config = picam2.create_video_configuration(main={"size": (args.width, args.height),"format": camera_format},
+													sensor={"output_size": (2304, 1296),"bit_depth": 10},
+													controls={"FrameRate": args.framerate},
+													buffer_count=6)
 			picam2.configure(video_config)
 			# Start camera
 			picam2.start()
