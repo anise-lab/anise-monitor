@@ -64,6 +64,7 @@ def record(args,counter):
 		print('Finished recording '+tmp_path)
 	else:
 		from picamera2 import Picamera2
+		global picam2
 		# for now this will only record from camera port 0 or 1 (Rpi 5)
 		if not counter:
 			# Initialise camera
