@@ -94,7 +94,7 @@ if $run_active; then
     echo "$(date '+%Y-%m-%d %H:%M:%S') - Starting active" >> "$LOGFILE"
     start_time=$(date +%s)
     timeout --signal=TERM --kill-after="$TIMEOUT_KILL_AFTER" "$SCRIPT_TIMEOUT" \
-        "$PYTHON" "$SCRIPT_PATH" "${SCRIPT_VARIABLES_ACTIVE[@]}" >> "$LOGFILE" 2>&1
+        "$PYTHON" -u "$SCRIPT_PATH" "${SCRIPT_VARIABLES_ACTIVE[@]}" >> "$LOGFILE" 2>&1
     script_status=$?
     end_time=$(date +%s)
     elapsed=$((end_time - start_time))

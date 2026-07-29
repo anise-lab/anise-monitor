@@ -68,7 +68,7 @@ def record(args,counter):
 		# for now this will only record from camera port 0 or 1 (Rpi 5)
 		if not counter:
 			# Initialise camera
-			print('Configuring camera...')
+			print('Configuring camera...', flush=True)
 			picam2 = Picamera2(int(args.camera))
 			if args.hardware_encoder:
 				camera_format = "YUV420"
