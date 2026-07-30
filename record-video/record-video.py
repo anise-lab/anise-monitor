@@ -99,7 +99,7 @@ def record(args,counter):
 			os.makedirs(output_path)
 		str_dt = dt.strftime("%Y_%m_%d-%H_%M_%S") # convert timestamp to string in yyyy-mm-dd_HH-MM-SS
 		# construct filename
-		filename = f"{device_id}_cam{args.camera}_{str_dt}_{args.counter:03d}"
+		filename = f"{device_id}_cam{args.camera}_{str_dt}_{counter:03d}"
 		# final output path
 		out_path = os.path.join(output_path,filename+'.mp4')
 		# temporary path
