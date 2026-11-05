@@ -58,4 +58,16 @@ sudo systemctl stop watchdog
 sudo systemctl disable watchdog
 ```
 
-For an extra layer of robustness you can also enable heartbeat monitoring; this is commented out in our watchdog.conf by default. If you enable `file = /tmp/heartbeat/`, watchdog will monitor the date written into that file by `record-video.py`. This is useful in situations when the Python scripts somehow ends up getting stuck, while the Pi remains responsive. By setting `change = 60`, watchdog will reboot if the heartbeat is not updated for 60 seconds. However, be careful because if `record-video.py` (or its wrapper) is not running, there is nobody to updated the heartbeat and watchdog will swing into action. For most usecases it is better to 1. let wrapper check if the Python does not exit prematurely, 2. let watchdog check for the health of the Pi, and 3. restart the Pi after a couple of Python runs.
+For an extra layer of robustness you can also enable heartbeat monitoring; this is commented out in our watchdog.conf by default.
+If you enable `file = /tmp/heartbeat/`, watchdog will monitor the date written into that file by `record-video.py`.
+This is useful in situations when the Python scripts somehow ends up getting stuck, while the Pi remains responsive.
+By setting `change = 60`, watchdog will reboot if the heartbeat is not updated for 60 seconds.
+However, be careful because if `record-video.py` (or its wrapper) is not running, there is nobody to update the heartbeat
+and watchdog will swing into action.
+For most usecases it is better to
+1. let wrapper check if the Python does not exit prematurely,
+2. let watchdog check for the health of the Pi, and
+3. restart the Pi after a couple of Python runs.
+
+
+
