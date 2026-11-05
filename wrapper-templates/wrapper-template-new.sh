@@ -113,7 +113,7 @@ if $run_active; then
     fi
     
     # Restart Pi after every run
-    if $REBOOT_AFTER_RUN; then
+    if [ "$REBOOT_AFTER_RUN" -eq 1 ]; then
         touch "$RESTARTFILE"
     fi
     
