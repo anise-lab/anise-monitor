@@ -5,6 +5,7 @@ import os
 import argparse
 import gc
 import shutil
+import psutil
 
 def record(args,counter):
 	if args.camera == 'usb': # USB camera
@@ -34,9 +35,11 @@ def record(args,counter):
 		command_record = 'ffmpeg -t '+str(args.length)+' -f v4l2 -input_format mjpeg -i '+args.usb+' -c:v libx264 -preset veryfast -crf 23 '+tmp_path
 		print(command_record)
 		# record
-		print('Starting to record '+tmp_path)
+		current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		print(current_time+' - '+'Starting to record '+tmp_path)
 		os.system(command_record)
-		print('Finished recording '+tmp_path)
+		current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		print(current_time+' - '+'Finished recording '+tmp_path)
 	elif args.camera == 'zero': # Zero with hardware encoding
 		# Set up output path
 		# get hostname
@@ -59,16 +62,19 @@ def record(args,counter):
 		command_rpicam = 'rpicam-vid -t '+ str(args.length * 1000) +' --width '+ str(args.width) + ' --height '+ str(args.height) +' --framerate '+str(args.framerate)+' -o '+tmp_path
 		print(command_rpicam)
 		# record
-		print('Starting to record '+tmp_path)
+		current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		print(current_time+' - '+'Starting to record '+tmp_path)
 		os.system(command_rpicam)
-		print('Finished recording '+tmp_path)
+		current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		print(current_time+' - '+'Finished recording '+tmp_path)
 	else:
 		from picamera2 import Picamera2
 		global picam2
 		# for now this will only record from camera port 0 or 1 (Rpi 5)
 		if not counter:
 			# Initialise camera
-			print('Configuring camera...', flush=True)
+			current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+			print(current_time+' - '+'Configuring camera...', flush=True)
 			picam2 = Picamera2(int(args.camera))
 			if args.hardware_encoder:
 				camera_format = "YUV420"
@@ -85,7 +91,8 @@ def record(args,counter):
 			if args.lenspos:
 				from libcamera import controls
 				picam2.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": args.lenspos})
-				print("Lens position manually adjusted to "+str(round(args.lenspos,2)))
+				current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+				print(current_time+' - '+"Lens position manually adjusted to "+str(round(args.lenspos,2)))
 		# Set up output path
 		# get hostname
 		device_id = os.uname()[1]
@@ -113,7 +120,8 @@ def record(args,counter):
 			fourcc = cv2.VideoWriter_fourcc(*"mp4v")  # Use "avc1" or "H264" if supported
 			out = cv2.VideoWriter(tmp_path, fourcc, args.framerate, (args.width, args.height))
 			# record
-			print('Starting to record '+tmp_path)
+			current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+			print(current_time+' - '+'Starting to record '+tmp_path)
 			t0 = time.time() # time of recording start
 			th = t0
 			target_interval = 1/args.framerate
@@ -153,7 +161,8 @@ def record(args,counter):
 						remaining_time = target_interval - (time.time() - t1)
 						time.sleep(max(0.001, remaining_time))
 				if args.verbose:
-					print("Total number of frames: "+str(frame_number)+" against expected "+str(args.length * args.framerate))
+					current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+					print(current_time+' - '+"Total number of frames: "+str(frame_number)+" against expected "+str(args.length * args.framerate))
 					with open(csv_path, "w", newline="") as file:
 						writer = csv.writer(file)
 						writer.writerow(["fps"])
@@ -167,7 +176,8 @@ def record(args,counter):
 			encoder = H264Encoder(framerate=args.framerate)
 			output = PyavOutput(tmp_path)
 			# record
-			print('Starting to record '+tmp_path)
+			current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+			print(current_time+' - '+'Starting to record '+tmp_path)
 			picam2.start_recording(encoder, output)
 			t0 = time.time() # time of recording start
 			th = t0
@@ -179,7 +189,8 @@ def record(args,counter):
 					print('Heartbeat updated')
 				time.sleep(0.1)
 			picam2.stop_recording()
-		print('Finished recording '+tmp_path)
+		current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		print(current_time+' - '+'Finished recording '+tmp_path)
 		# stop preview
 		if args.preview:
 			picam2.stop_preview()
@@ -193,7 +204,8 @@ def record(args,counter):
 			-i /dev/video0 \
 			-update 1 \
 			-frames:v 1 '+ os.path.join(args.frameout,filename +'.jpg')
-		print(cmd_frame)
+		current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		print(current_time+' - '+cmd_frame)
 		os.system(cmd_frame)
     # move to final output path
 	if args.recipient:
@@ -201,7 +213,8 @@ def record(args,counter):
 		os.system("rm "+tmp_path)
 	else:
 		shutil.move(tmp_path, out_path)
-	print('Moved '+tmp_path+' to '+out_path)
+	current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+	print(current_time+' - '+'Moved '+tmp_path+' to '+out_path)
     ## hack for not losing last file if usb drive not ejected safely
     #if var_record_external and len(var_external_paths):
     #    if os.path.exists(os.path.join(output_path,'hack.lock')):
@@ -213,7 +226,8 @@ def record(args,counter):
 		if counter == (args.repeat - 1):
 			picam2.stop()
 			picam2.close()
-			print('Camera closed')
+			current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+			print(current_time+' - '+'Camera closed')
 	# garbage collection
 	del tmp_path
 	gc.collect()
@@ -256,13 +270,34 @@ def main():
 	if args.pirgpio:
 		from gpiozero import MotionSensor
 		pir = MotionSensor(args.pirgpio)
-		print("Waiting for motion...")
+		current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		print(current_time+' - '+"Waiting for motion...")
 		pir.wait_for_motion()
-		print('Motion detected, recording...')
+		current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		print(current_time+' - '+'Motion detected, recording...')
 		record(args,1)
 	else:
 		for counter in range(args.repeat):
+			# report available RAM before recording
+			memory = psutil.virtual_memory()
+			available_mb = memory.available / (1024 * 1024)
+			total_mb = memory.total / (1024 * 1024)
+			used_percent = memory.percent
+			current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+			print(f"{current_time} - Available RAM: {available_mb:.1f} MB")
+			print(f"{current_time} - Total RAM:     {total_mb:.1f} MB")
+			print(f"{current_time} - RAM usage:     {used_percent:.1f}%")
+			# record
 			record(args,counter)
+			# report available RAM after recording
+			memory = psutil.virtual_memory()
+			available_mb = memory.available / (1024 * 1024)
+			total_mb = memory.total / (1024 * 1024)
+			used_percent = memory.percent
+			current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+			print(f"{current_time} - Available RAM: {available_mb:.1f} MB")
+			print(f"{current_time} - Total RAM:     {total_mb:.1f} MB")
+			print(f"{current_time} - RAM usage:     {used_percent:.1f}%")
 
 if __name__ == '__main__':
     main()
